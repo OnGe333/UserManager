@@ -1,0 +1,30 @@
+{
+	"name": "onge/user-manager",
+	"description": "User management - registration, activation, authorization, password recovery",
+	"keywords": ["auth", "security", "password", "user management"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Ondřej Gertner",
+			"email": "package@onge.cz"
+		}
+	],
+	"require": {
+		"php": ">= 7.0",
+		"ext-mbstring": "*"
+	},
+	"require-dev": {
+		"dibi/dibi": "3.*",
+		"phpunit/phpunit": "6.*"
+	},
+	"suggest": {
+		"dibi/dibi": "for default database provider. See in examples",
+		"ext/openssl": "for better random strings",
+		"ext/gettext": "translate messages from default UserProvider"
+	},
+	"autoload": {
+		"psr-4": {
+			"Onge\\UserManager\\": "src/"
+		}
+	}
+}
