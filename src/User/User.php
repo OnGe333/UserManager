@@ -12,6 +12,7 @@ class User implements UserInterface {
 	protected $passwordResetCode;
 	protected $passwordResetTime;
 	protected $lastLogin;
+	protected $permanentAuthCode;
 
 	protected $passwordCost = 10; // password_hash cost value, see: http://php.net/manual/en/function.password-hash.php
 
@@ -26,6 +27,7 @@ class User implements UserInterface {
 		$this->passwordResetCode = isset($data['password_reset_code']) ? $data['password_reset_code'] : (isset($data['passwordResetCode']) ? $data['passwordResetCode'] : null);
 		$this->passwordResetTime = isset($data['password_reset_time']) ? $data['password_reset_time'] : (isset($data['passwordResetTime']) ? $data['passwordResetTime'] : null);
 		$this->lastLogin = isset($data['last_login']) ? $data['last_login'] : (isset($data['lastLogin']) ? $data['lastLogin'] : null);
+		$this->permanentAuthCode = isset($data['permanent_auth_code']) ? $data['permanent_auth_code'] : (isset($data['permanentAuthCode']) ? $data['permanentAuthCode'] : null);
 
 	}
 
@@ -41,6 +43,7 @@ class User implements UserInterface {
 			'password_reset_code' => $this->passwordResetCode,
 			'password_reset_time' => $this->passwordResetTime,
 			'last_login' => $this->lastLogin,
+			'permanent_auth_code' => $this->permanentAuthCode,
 			);
 	}
 
@@ -125,12 +128,33 @@ class User implements UserInterface {
 		return $this->passwordResetTime;
 	}
 
-	public function setActivationCode() {
-		return $this->activationCode = $this->randomString();
+	public function setPasswordResetTime() {
+		$this->passwordResetTime = date('Y-m-d H:i:s');
 	}
 
-	public function setPasswordResetCode() {
-		return $this->passwordResetCode = $this->randomString();
+	public function setActivationCode($code) {
+		$this->activationCode = $code;
+	}
+
+	public function setPasswordResetCode($code) {
+		$this->passwordResetCode = $code;
+	}
+
+	public function authCode() {
+		return $this->permanentAuthCode;
+	}
+
+	public function setAuthCode($code) {
+		$this->permanentAuthCode = $code;
+	}
+
+	public function clearAuthCode() {
+		$this->permanentAuthCode = null;
+	}
+
+	public function clearPasswordReset() {
+		$this->passwordResetCode = null;
+		$this->passwordResetTime = null;
 	}
 
 	public function lastLogin() {

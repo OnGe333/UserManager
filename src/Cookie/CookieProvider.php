@@ -1,6 +1,7 @@
 <?php 
 namespace Onge\UserManager\Cookie;
-use Onge\UserManagerException;
+
+use Onge\UserManager\UserManagerException;
 
 class CookieProvider implements CookieProviderInterface {
 	protected $prefix;
@@ -16,7 +17,7 @@ class CookieProvider implements CookieProviderInterface {
 	public function __construct(array $cookieOptions = array(), $prefix = 'userManager_') {
 		$this->prefix = $prefix;
 
-		$this->path = isset($cookieOptions['path']) ? $cookieOptions['path'] : "";
+		$this->path = isset($cookieOptions['path']) ? $cookieOptions['path'] : "/";
 		$this->domain = isset($cookieOptions['domain']) ? $cookieOptions['domain'] : "";
 		$this->secure = isset($cookieOptions['secure']) ? $cookieOptions['secure'] : true;
 		$this->httponly = isset($cookieOptions['httponly']) ? $cookieOptions['httponly'] : true;
@@ -31,16 +32,24 @@ class CookieProvider implements CookieProviderInterface {
 		if ($secure && empty($_SERVER['HTTPS'])) {
 			throw new UserManagerException('Tried to set secured cookie via unsecured connection. Cookie not set');
 		} else {
-			return setcookie($name, json_encode($value), (time() + $lifetime), $path, $domain, $secure, $httponly);
+			return setcookie($this->prefix . $name, json_encode($value), (time() + $lifetime), $path, $domain, $secure, $httponly);
 		}
 	}
 
 	public function setPermanent(string $name, $value, array $cookieOptions = array()) {
-		// lifetime slightly over one year
-		return $this->set($name, $value, time() + 32000000, $cookieOptions)
+		// lifetime slightly over ten years
+		return $this->set($name, $value, 320000000, $cookieOptions);
 	}
 
 	public function get($name) {
-		return json_decode($_COOKIE[$this->prefix . $name]);
+		if (isset($_COOKIE[$this->prefix . $name])) {
+			return json_decode($_COOKIE[$this->prefix . $name]);
+		} else {
+			return null;
+		}
+	}
+
+	public function unset(string $name, array $cookieOptions = array()) {
+		return $this->set($name, 0, -100000, $cookieOptions);
 	}
 }

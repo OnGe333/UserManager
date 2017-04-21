@@ -19,14 +19,78 @@ $dbCredentials = array(
 \dibi::connect($dbCredentials);
 
 $dependencies = array(
-	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), new Session\SessionProvider()),
+	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), new Session\SessionProvider()), new Cookie\CookieProvider(array('secure' => false))
 //	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Dibi()),
 );
-echo '<pre>';
-var_dump($_SESSION);
-echo '</pre>';
 
 UserManager::prepareInstance($dependencies);
+UserManager::setPermaloginSecure(false);
+
+if (isset($_POST['sessionout'])) {
+	UserManager::getSessionProvider()->set('id', null);
+	echo '<br/> session cleared';
+}
+
+if (UserManager::check()) {
+
+	if (isset($_GET['logout'])) {
+		UserManager::logout();
+		
+		header('Location: ./', 302);
+		exit;
+
+	}
+?>
+	<h2>Logout</h2>
+	Logout <a href="./?logout=1">here</a><br/>
+
+	<form action="./" method="post">
+		<button type="submit" name="sessionout">Clear session</button> but not cookie, to see if permanent login works
+	</form>
+<?php
+} else {
+?>
+	<h2>Login</h2>
+	<?php
+	if (isset($_POST['login']) && isset($_POST['password'])) {
+		if (UserManager::check()) {
+			echo '<br/>Already logged in';
+		} else {
+			try {
+				if (UserManager::authenticate($_POST['login'], $_POST['password'], isset($_POST['permanent']))) {
+					echo '<br/>Success, refresh to see you logged in';
+				} else {
+					echo '<br/>Authentication failed';
+				}
+			} catch (UserManagerException $e) {
+				echo '<br/>Error: ' . $e->getMessage();
+			}		
+		}
+	}
+
+	?>
+	<form action="./" method="post">
+		<div>
+			<label>
+				E-mail: <input type="text" name="login" value="<?php echo (isset($_POST['login']) ? htmlspecialchars($_POST['login']) : '') ?>" />
+			</label>
+		</div>
+		<div>
+			<label>
+				Password: <input type="text" name="password" value="<?php echo (isset($_POST['password']) ? htmlspecialchars($_POST['password']) : ''); // NEVER EVER try to put password to input - this is for testing purpose only ?>" />
+			</label>
+		</div>
+		<div>
+			<label>
+				<input type="checkbox" name="permanent" value="1" /> login permanently
+			</label>
+		</div>
+		<div>
+			<input type="submit"/>
+		</div>
+	</form>
+	<?php
+}
 
 if (UserManager::check()) {
 
@@ -36,7 +100,7 @@ if (UserManager::check()) {
 ?>
 <h2>Find user by id</h2>
 <?php
-$user = UserManager::findById(4);
+$user = UserManager::findById(2);
 echo '<pre>';
 var_dump($user);
 echo '</pre>';
@@ -58,7 +122,7 @@ if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 	}
 }
 ?>
-<form action="" method="post">
+<form action="./" method="post">
 	<div>
 		<label>
 			E-mail: <input type="text" name="reg-email" value="<?php echo (isset($_POST['reg-email']) ? htmlspecialchars($_POST['reg-email']) : '') ?>" />
@@ -89,7 +153,7 @@ if (isset($_GET['reg-activate'])) {
 }
 
 ?>
-<form action="" method="get">
+<form action="./" method="get">
 	<div>
 		<label>
 			Code: <input type="text" name="reg-activate" value="<?php echo (isset($_GET['reg-activate']) ? htmlspecialchars($_GET['reg-activate']) : '') ?>" />
@@ -116,7 +180,7 @@ if (isset($_POST['reg-email-activate'])) {
 }
 
 ?>
-<form action="" method="post">
+<form action="./" method="post">
 	<div>
 		<label>
 			E-mail: <input type="text" name="reg-email-activate" value="<?php echo (isset($_POST['reg-email-activate']) ? htmlspecialchars($_POST['reg-email-activate']) : '') ?>" />
@@ -126,35 +190,50 @@ if (isset($_POST['reg-email-activate'])) {
 		<input type="submit"/>
 	</div>
 </form>
-
-<h2>Login</h2>
+<h2>Password reset - get reset code</h2>
+<p>Code is for one time use. New one is generated only if old one does not exist, is already used or is too old</p>
 <?php
-if (isset($_POST['login']) && isset($_POST['password'])) {
-	if (UserManager::check()) {
-		echo '<br/>Already logged in';
+if (isset($_POST['reset-email'])) {
+	$code = UserManager::passwordResetCode($_POST['reset-email']);
+	if ($code) {
+		echo 'Your code (should be sent to email): ' . $code;
 	} else {
-		try {
-			if (UserManager::authenticate($_POST['login'], $_POST['password'])) {
-				echo '<br/>Success';
-			} else {
-				echo '<br/>Authentication failed';
-			}
-		} catch (UserManagerException $e) {
-			echo '<br/>Error: ' . $e->getMessage();
-		}		
+		echo 'Email not found. User should not know about it, because this can be used to mine registered users emails.';
 	}
 }
-
 ?>
-<form action="" method="post">
+<form action="./" method="post">
 	<div>
 		<label>
-			E-mail: <input type="text" name="login" value="<?php echo (isset($_POST['login']) ? htmlspecialchars($_POST['login']) : '') ?>" />
+			E-mail: <input type="text" name="reset-email" value="<?php echo (isset($_POST['reset-email']) ? htmlspecialchars($_POST['reset-email']) : '') ?>" />
 		</label>
 	</div>
 	<div>
+		<input type="submit"/>
+	</div>
+</form>
+<h2>Password reset - set password</h2>
+<p></p>
+<?php
+if (isset($_GET['reset-code'])) {
+	if (UserManager::validatePasswordResetCode($_GET['reset-code'])) {
+		try {
+			if (UserManager::resetPassword($_GET['reset-code'], $_POST['reset-password'])) {
+				echo '<br/>Password has been set';
+			} else {
+				echo '<br/>Unable to set password';
+			}
+		} catch (UserManagerArgumentException $e) {
+			echo '<br/>' . $e->getMessage();
+		} catch (UserManagerException $e) {
+			echo '<br/>Error: ' . $e->getMessage();
+		}
+?>
+<h3>Reset password</h3>
+<form action="./?reset-code=<?php echo urlencode(htmlspecialchars($_GET['reset-code'])); ?>" method="post">
+	<div>
 		<label>
-			Password: <input type="text" name="password" value="<?php echo (isset($_POST['password']) ? htmlspecialchars($_POST['password']) : ''); // NEVER EVER try to put password to input - this is for testing purpose only ?>" />
+			New password: <input type="text" name="reset-password" value="<?php echo (isset($_POST['reset-password']) ? htmlspecialchars($_POST['reset-password']) : '') ?>" />
 		</label>
 	</div>
 	<div>
@@ -162,5 +241,24 @@ if (isset($_POST['login']) && isset($_POST['password'])) {
 	</div>
 </form>
 <?php
-echo '<br/>' . number_format(microtime(true) - $init, 3);
-echo '<br/>' . number_format(memory_get_peak_usage()) . ' B';
+	} else {
+		echo 'Code is invalid';
+	}
+}
+
+?>
+<h3>Insert code</h3>
+<form action="./" method="get">
+	<div>
+		<label>
+			Code: <input type="text" name="reset-code" value="<?php echo (isset($_GET['reset-code']) ? htmlspecialchars($_GET['reset-code']) : '') ?>" />
+		</label>
+	</div>
+	<div>
+		<input type="submit"/>
+	</div>
+</form>
+<?php
+
+echo '<br/>time: ' . number_format(microtime(true) - $init, 3);
+echo '<br/>RAM: ' . number_format(memory_get_peak_usage()) . ' B';

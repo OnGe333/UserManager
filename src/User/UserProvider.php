@@ -21,20 +21,56 @@ class UserProvider implements UserProviderInterface {
 	 * get user data by id
 	 * 
 	 * @param  int 	$id 	id of user
-	 * @return array
+	 * @return \Onge\UserManager\User\UserInterface
 	 */
 	public function findById($id) {
-		return $this->storageProvider->findById($id);
+		if ($data = $this->storageProvider->findById($id)) {
+			return $this->newUser($data);
+		}
+
+		return null;
 	}
 
 	/**
 	 * get user data by login
 	 * 
-	 * @param  int 	$id 	id of user
-	 * @return array
+	 * @param  string 	$login
+	 * @return \Onge\UserManager\User\UserInterface
 	 */
 	public function findByLogin($login) {
-		return $this->storageProvider->findByLogin($login);
+		if ($data = $this->storageProvider->findByLogin($login)) {
+			return $this->newUser($data);
+		}
+
+		return null;
+	}
+
+	/**
+	 * get user data by permanent login code
+	 * 
+	 * @param  string 	$id 	id of user
+	 * @return \Onge\UserManager\User\UserInterface
+	 */
+	public function findByPermanentLogin($code) {
+		if ($data = $this->storageProvider->findByPermanentLogin($code)) {
+			return $this->newUser($data);
+		}
+
+		return null;
+	}
+
+	public function validatePassword($password) {
+		if (!isset($password)) {
+			throw new UserManagerArgumentException(_('Password is required'));
+			return false;
+		}
+
+		if (mb_strlen($password) < $this->passwordLength) {
+			throw new UserManagerArgumentException(sprintf(_('Password length is insufficient. Minimal length is %d characters.'), $this->passwordLength));
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -49,13 +85,7 @@ class UserProvider implements UserProviderInterface {
 			return false;
 		}
 
-		if (!isset($data['password'])) {
-			throw new UserManagerArgumentException(_('Password is required'));
-			return false;
-		}
-
-		if (mb_strlen($data['password']) < $this->passwordLength) {
-			throw new UserManagerArgumentException(sprintf(_('Password length is insufficient. Minimal length is %d characters.'), $this->passwordLength));
+		if ($this->validatePassword($data['password']) === false) {
 			return false;
 		}
 
@@ -101,7 +131,7 @@ class UserProvider implements UserProviderInterface {
 	 * @return bool 	return true on success, otherwise false
 	 */
 	public function activateByCode($code) {
-		if ($data = $this->storageProvider->findByActivationCode($code)) {
+		if ($user = $this->storageProvider->findByActivationCode($code)) {
 			$user = $this->newUser($data);
 			$user->setActive(true);
 			$user->invalidateActivationCode();
@@ -154,6 +184,64 @@ class UserProvider implements UserProviderInterface {
 		}
 		
 		return false;
+	}
+
+	public function passwordResetCode($email) {
+		if ($data = $this->storageProvider->findByEmail($email)) {
+			$user = $this->newUser($data);
+			if (is_null($user->passwordResetTime()) || (strtotime($user->passwordResetTime()) + 86400) < time()) {
+				$user->setPasswordResetCode($this->randomString());
+				$user->setPasswordResetTime();
+				$this->save($user);
+			}
+
+			return $user->passwordResetCode();
+		} else {
+			return false;
+		}		
+	}
+
+	public function validatePasswordResetCode($code) {
+		if ($this->storageProvider->findByPasswordResetCode($code)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function resetPassword($code, $password) {
+		if ($data = $this->storageProvider->findByPasswordResetCode($code)) {
+			$user = $this->newUser($data);
+			$user->setPassword($password);
+			$user->clearPasswordReset();
+
+			$this->save($user);
+			return true;
+		}
+
+		return false;		
+	}
+
+	public function randomString($length = 48, $uniqueColumn = false) {
+		while (true) {
+			$bytes = random_bytes($length);
+
+			$string = mb_substr(str_replace(array('/', '+', '='), (mt_rand(0, 1) ? '-' : '_'), base64_encode($bytes)), 0, $length);
+
+			if ($uniqueColumn === false) {
+				break;
+			} else {
+				if (!$this->storageProvider()->isUnique($string, $uniqueColumn)) {
+					break;
+				}
+			}
+		}
+
+		if (mb_strlen($string) == $length) {
+			return $string;
+		} else {
+			throw new UserManagerException(_('Unable to generate random string.'));
+		}
 	}
 
 	/**

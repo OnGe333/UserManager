@@ -18,6 +18,8 @@ class Dibi implements StorageInterface {
 
 	protected $passwordResetCode;
 
+	protected $permanentLogin;
+
 	public function __construct(array $config = []) {
 		$this->containerClass = isset($config['containerClass']) ? $config['containerClass'] : 'Onge\\UserManager\\User\\User';
 		$this->table = 'user';
@@ -26,6 +28,7 @@ class Dibi implements StorageInterface {
 		$this->password = 'password';
 		$this->activationCode = 'activation_code';
 		$this->passwordResetCode = 'password_reset_code';
+		$this->permanentAuthCode = 'permanent_auth_code';
 		$this->id = 'id';
 	}
 
@@ -73,6 +76,26 @@ class Dibi implements StorageInterface {
 		}
 	}
 
+	public function findByPermanentLogin($code) {
+		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->permanentAuthCode, ' = %s', $code)->fetch();
+		
+		if (empty($data)) {
+			return false;
+		} else {
+			return $data->toArray();
+		}
+	}
+
+	public function findByPasswordResetCode($code) {
+		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->passwordResetCode, ' = %s', $code)->fetch();
+		
+		if (empty($data)) {
+			return false;
+		} else {
+			return $data->toArray();
+		}		
+	}
+
 	public function save(\Onge\UserManager\User\UserInterface $user) {
 		$data = $user->getData();
 
@@ -81,5 +104,9 @@ class Dibi implements StorageInterface {
 		} else {
 			return \dibi::query('UPDATE %n', $this->table, 'SET %a', $data, 'WHERE %n', $this->id, ' = %i', $user->id());
 		}
+	}
+
+	public function isUnique($value, $column) {
+		return \dibi::query('SELECT COUNT(*) FROM %n', $this->table, 'WHERE %n', $column, ' = %s', $value)->fetchSingle();
 	}
 }

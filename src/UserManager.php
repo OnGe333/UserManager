@@ -24,6 +24,10 @@ class UserManager {
 
 	protected $protectionProvider;
 
+	protected $permaloginHttpOnly = true;
+
+	protected $permaloginSecure = true;
+
 	protected function __construct(User\UserProviderInterface $userProvider, \Onge\UserManager\Session\SessionProviderInterface $sessionProvider, \Onge\UserManager\Cookie\CookieProviderInterface $cookieProvider, Protection\ProtectionProviderInterface $protectionProvider) {
 		
 		$this->userProvider = $userProvider;
@@ -66,18 +70,29 @@ class UserManager {
 		return static::getInstance()->userProvider();
 	}
 
+	public function userProvider() {
+		return $this->userProvider;
+	}
+
 	public function protectionProvider() {
 		return $this->protectionProvider;
 	}
 
-	public function userProvider() {
-		return $this->userProvider;
+	public static function getSessionProvider() {
+		return static::getInstance()->sessionProvider();
 	}
 
 	public function sessionProvider() {
 		return $this->sessionProvider;
 	}
 
+	public static function getCookieProvider() {
+		return static::getInstance()->cookieProvider();
+	}
+
+	public function cookieProvider() {
+		return $this->cookieProvider;
+	}
 	/**
 	 * Get instance of user by id
 	 * 
@@ -98,13 +113,42 @@ class UserManager {
 		return static::getInstance()->userProvider()->findByLogin($login);
 	}
 
+	public static function validatePasswordResetCode($code) {
+		return static::getInstance()->userProvider()->validatePasswordResetCode($code);
+	}
+
+	public static function resetPassword($code, $password) {
+		if (static::getInstance()->userProvider()->validatePassword($password)) {
+			return static::getInstance()->userProvider()->resetPassword($code, $password);
+		} else {
+			return false;
+		}
+	}
 	/**
 	 * Is user logged in? Return true if is, otherwise false
 	 * 
 	 * @return bool 	
 	 */
 	public static function check() {
-		return static::getInstance()->sessionProvider()->check();
+		if (static::currentUser() instanceof UserInterface) {
+			return true;
+		} elseif (static::getInstance()->sessionProvider()->check()) {
+			$user = static::getInstance()->userProvider()->findById(static::getInstance()->sessionProvider()->get('id'));
+			if ($user) {	
+				static::getInstance()->setCurrentUser($user);
+				return true;
+			}
+			return false;
+		} elseif ($permalogin = static::getInstance()->cookieProvider()->get('permalogin')) {
+			$userData = static::getInstance()->userProvider()->findByPermanentLogin($permalogin);
+			if ($user) {	
+				static::getInstance()->setCurrentUser($user);
+				return true;
+			}
+			return false;
+		}
+
+		return false;
 	}
 
 	/**
@@ -113,7 +157,16 @@ class UserManager {
 	 * @return Onge\UserManager\User\UserInterface
 	 */
 	public static function currentUser() {
+		return static::getInstance()->getCurrentUser();
 
+	}
+
+	public function getCurrentUser() {
+		return $this->currentUser;
+	}
+
+	public function setCurrentUser(User\UserInterface $user) {
+		return $this->currentUser = $user;
 	}
 
 	/**
@@ -142,14 +195,34 @@ class UserManager {
 
 	public static function authenticate(string $login, string $password, bool $permanent = false) {
 		if ($userId = static::getInstance()->userProvider()->authenticate($login, $password)) {
-			$this->sessionProvider()->login($userId);
+			static::getInstance()->sessionProvider()->login($userId);
 
 			if ($permanent) {
-				
+				$user = static::getInstance()->userProvider()->newUser(static::getInstance()->userProvider()->findById($userId));
+				$authCode = static::getInstance()->userProvider()->randomString();
+				$user->setAuthCode($authCode);
+
+				// permanent auth cookie should always be secure and httponly
+				if (static::getInstance()->cookieProvider()->setPermanent('permalogin', $authCode, array('secure' => static::getInstance()->getPermaloginSecure(), 'httponly' => static::getInstance()->getPermaloginHttpOnly()))) {
+					static::getInstance()->userProvider()->save($user);
+				} else {
+					// fail silently
+					// throw new UserManagerException('Unable to set permanent cookie');
+				}
 			}
 		}
 
 		return $userId;
+	}
+
+	public static function logout() {
+		$user = static::currentUser();
+		if ($user instanceof User\UserInterface) {
+			static::getInstance()->sessionProvider()->logout();
+			var_dump(static::getInstance()->cookieProvider()->unset('permalogin', array('secure' => static::getInstance()->getPermaloginSecure(), 'httponly' => static::getInstance()->getPermaloginHttpOnly())));
+			$user->clearAuthCode();
+			//static::getInstance()->userProvider()->save($user);
+		}
 	}
 
 	public static function attempt() {
@@ -166,5 +239,25 @@ class UserManager {
 
 	public static function refreshActivationCode($email) {
 		return static::getInstance()->userProvider()->refreshActivationCode($email);
+	}
+
+	public static function passwordResetCode($email) {
+		return static::getInstance()->userProvider()->passwordResetCode($email);
+	}
+
+	public function getPermaloginSecure() {
+		return $this->permaloginSecure;
+	}
+
+	public static function setPermaloginSecure(bool $value) {
+		static::getInstance()->permaloginSecure = $value;
+	}
+
+	public function getPermaloginHttpOnly() {
+		return $this->permaloginHttpOnly;
+	}
+
+	public static function setPermaloginHttpOnly(bool $value) {
+		static::getInstance()->permaloginHttpOnly = $value;
 	}
 }

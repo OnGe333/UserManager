@@ -22,7 +22,12 @@ class SessionProvider implements SessionProviderInterface {
 
 		return $_SESSION[$this->prefix . 'id'] = $id;
 	}
-	
+
+	/**
+	 * clear user session
+	 * 
+	 * @return void
+	 */
 	public function logout() {
 		if (isset($_SESSION[$this->prefix . 'id'])) {
 			unset($_SESSION[$this->prefix . 'id']);
