@@ -22,14 +22,14 @@ class Dibi implements StorageInterface {
 
 	public function __construct(array $config = []) {
 		$this->containerClass = isset($config['containerClass']) ? $config['containerClass'] : 'Onge\\UserManager\\User\\User';
-		$this->table = 'user';
-		$this->login = 'email';
-		$this->email = 'email';
-		$this->password = 'password';
-		$this->activationCode = 'activation_code';
-		$this->passwordResetCode = 'password_reset_code';
-		$this->permanentAuthCode = 'permanent_auth_code';
-		$this->id = 'id';
+		$this->table = isset($config['table']) ?$config['table'] : 'user';
+		$this->login = isset($config['login']) ?$config['login'] : 'email';
+		$this->email = isset($config['email']) ?$config['email'] : 'email';
+		$this->password = isset($config['password']) ? $config['password'] : 'password';
+		$this->activationCode = isset($config['activationCode']) ? $config['activationCode'] : 'activation_code';
+		$this->passwordResetCode = isset($config['passwordResetCode']) ? $config['passwordResetCode'] : 'password_reset_code';
+		$this->permanentAuthCode = isset($config['permanentAuthCode']) ? $config['permanentAuthCode'] : 'permanent_auth_code';
+		$this->id = isset($config['id']) ? $config['id'] : 'id';
 	}
 
 	public function getContainerClass() {

@@ -1,5 +1,5 @@
 <?php
-namespace Onge\UserManager\User\Storage;
+namespace Onge\UserManager\Protection\Storage;
 
 interface StorageInterface {
 

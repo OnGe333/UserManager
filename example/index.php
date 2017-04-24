@@ -18,9 +18,11 @@ $dbCredentials = array(
 
 \dibi::connect($dbCredentials);
 
+$sessionProvider = new Session\SessionProvider();
+
 $dependencies = array(
-	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), new Session\SessionProvider()), new Cookie\CookieProvider(array('secure' => false))
-//	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Dibi()),
+	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), $sessionProvider, new Cookie\CookieProvider(array('secure' => false))), 
+	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), $sessionProvider),
 );
 
 UserManager::prepareInstance($dependencies);
@@ -56,15 +58,21 @@ if (UserManager::check()) {
 		if (UserManager::check()) {
 			echo '<br/>Already logged in';
 		} else {
-			try {
-				if (UserManager::authenticate($_POST['login'], $_POST['password'], isset($_POST['permanent']))) {
-					echo '<br/>Success, refresh to see you logged in';
-				} else {
-					echo '<br/>Authentication failed';
+			UserManager::slowDown($_POST['login']);
+			if (UserManager::protect($_POST['login'])) {
+				try {
+					if (UserManager::authenticate($_POST['login'], $_POST['password'], isset($_POST['permanent']))) {
+						echo '<br/>Success, refresh to see you logged in';
+					} else {
+						UserManager::attempt($_POST['login']);
+						echo '<br/>Authentication failed';
+					}
+				} catch (UserManagerException $e) {
+					echo '<br/>Error: ' . $e->getMessage();
 				}
-			} catch (UserManagerException $e) {
-				echo '<br/>Error: ' . $e->getMessage();
-			}		
+			} else {
+				echo '<br/>Login blocked: too many failed attempts. Wait';
+			}
 		}
 	}
 
