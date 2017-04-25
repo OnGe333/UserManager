@@ -17,23 +17,23 @@ class Dibi implements StorageInterface {
 		$this->attempt_time = isset($config['attempt_time']) ? $config['attempt_time'] : 'attempt_time';
 	}
 
-	public function totalAttempts($time) {
+	public function totalAttempts(int $time) {
 		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE))')->fetchSingle();
 	}
 
-	public function totalAttemptsLogin($time, $login) {
+	public function totalAttemptsLogin(int $time, string $login) {
 		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE)) AND %n', $this->login, ' = %s', $login, '')->fetchSingle();
 	}
 
-	public function totalAttemptsIp($time, $ip) {
+	public function totalAttemptsIp(int $time, string $ip) {
 		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE)) AND %n', $this->ip, ' = %s', $ip, '')->fetchSingle();
 	}
 
-	public function addAttempt(array $data = array()) {
-		return \dibi::query('INSERT INTO %n', $this->table, 'SET %a', $data, ', attempt_time = NOW()');
+	public function addAttempt($ip, $login) {
+		return \dibi::query('INSERT INTO %n', $this->table, 'SET %n', $this->ip, ' = %s', $ip, ', %n', $this->login, ' = %s', $login, ', attempt_time = NOW()');
 	}
 
-	public function cleanup($time) {
+	public function cleanup(int $time) {
 		return \dibi::query('DELETE FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' < (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE))');
 	}
 }
