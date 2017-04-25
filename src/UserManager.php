@@ -250,12 +250,12 @@ class UserManager {
 		}
 	}
 
-	public static function attempt($login = null) {
-		return static::getInstance()->protectionProvider()->attempt($login);
+	public static function attempt($login = null, $ip = null) {
+		return static::getInstance()->protectionProvider()->attempt($login, $ip);
 	}
 
-	public static function protect($login = null) {
-		return static::getInstance()->protectionProvider()->protect($login);
+	public static function lockdown($login = null, $ip = null) {
+		return static::getInstance()->protectionProvider()->lockdown($login, $ip);
 	}
 
 	public static function slowDown($login = null) {

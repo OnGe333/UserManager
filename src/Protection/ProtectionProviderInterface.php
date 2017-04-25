@@ -2,7 +2,7 @@
 namespace Onge\UserManager\Protection;
 
 interface ProtectionProviderInterface {
-	public function attempt();
+	public function attempt($login = null, $ip = null);
 
-	public function protect();
+	public function lockdown($login = null, $ip = null);
 }

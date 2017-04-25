@@ -21,11 +21,19 @@ class Dibi implements StorageInterface {
 		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE))')->fetchSingle();
 	}
 
-	public function totalAttemptsLoginSpecific($time, $login) {
+	public function totalAttemptsLogin($time, $login) {
 		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE)) AND %n', $this->login, ' = %s', $login, '')->fetchSingle();
+	}
+
+	public function totalAttemptsIp($time, $ip) {
+		return \dibi::query('SELECT COUNT(%n', $this->attempt_time, ') FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' > (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE)) AND %n', $this->ip, ' = %s', $ip, '')->fetchSingle();
 	}
 
 	public function addAttempt(array $data = array()) {
 		return \dibi::query('INSERT INTO %n', $this->table, 'SET %a', $data, ', attempt_time = NOW()');
+	}
+
+	public function cleanup($time) {
+		return \dibi::query('DELETE FROM %n', $this->table, 'WHERE %n', $this->attempt_time, ' < (DATE_SUB(NOW(), INTERVAL %i', $time, ' MINUTE))');
 	}
 }

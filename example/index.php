@@ -22,7 +22,7 @@ $sessionProvider = new Session\SessionProvider();
 
 $dependencies = array(
 	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), $sessionProvider, new Cookie\CookieProvider(array('secure' => false))), 
-	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), $sessionProvider),
+	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), $sessionProvider),
 );
 
 UserManager::prepareInstance($dependencies);
@@ -59,7 +59,9 @@ if (UserManager::check()) {
 			echo '<br/>Already logged in';
 		} else {
 			UserManager::slowDown($_POST['login']);
-			if (UserManager::protect($_POST['login'])) {
+			if ($wait = UserManager::lockdown($_POST['login'], '127.0.0.1')) {
+				echo '<br/>Too many failed attempts, account locked since ' . $wait;
+			} else {
 				try {
 					if (UserManager::authenticate($_POST['login'], $_POST['password'], isset($_POST['permanent']))) {
 						echo '<br/>Success, refresh to see you logged in';
@@ -70,8 +72,6 @@ if (UserManager::check()) {
 				} catch (UserManagerException $e) {
 					echo '<br/>Error: ' . $e->getMessage();
 				}
-			} else {
-				echo '<br/>Login blocked: too many failed attempts. Wait';
 			}
 		}
 	}
