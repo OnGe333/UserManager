@@ -254,12 +254,12 @@ class UserManager {
 		return static::getInstance()->protectionProvider()->attempt($login, $ip);
 	}
 
-	public static function lockdown($login = null, $ip = null) {
-		return static::getInstance()->protectionProvider()->lockdown($login, $ip);
+	public static function warning($login = null, $ip = null) {
+		return static::getInstance()->protectionProvider()->warning($login, $ip);
 	}
 
-	public static function slowDown($login = null) {
-		return static::getInstance()->protectionProvider()->slowDown($login);
+	public static function lockdown($login = null, $ip = null) {
+		return static::getInstance()->protectionProvider()->lockdown($login, $ip);
 	}
 
 	public static function activateByCode($code) {

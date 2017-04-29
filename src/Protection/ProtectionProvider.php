@@ -10,27 +10,20 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	protected $recordedInterval;
 
-	protected $minSlowDown;
-
-	protected $maxSlowDown;
-	
-	protected $slowDownPerAttemptGeneral;
-
-	protected $slowDownPerAttemptLoginSpecific;
-
 	protected $autocleanup;
 
 	/**
 	 * Set up dependencies and configurate variables. 
 	 * Any config variable may be ommited, then default value is set
 	 * 
-	 * @param Storage\Attempt\StorageInterface                   $attemptStorage  [description]
-	 * @param Storage\Lockdown\StorageInterface                  $lockdownStorage [description]
-	 * @param \Onge\UserManager\Session\SessionProviderInterface $sessionProvider [description]
+	 * @param Storage\Attempt\StorageInterface                   $attemptStorage  storage provider instance
+	 * @param Storage\Lockdown\StorageInterface                  $lockdownStorage storage provider instance
+	 * @param \Onge\UserManager\Session\SessionProviderInterface $sessionProvider session provider instance
 	 * @param array                                              $config          configuration associative array
 	 */
-	public function __construct(Storage\Attempt\StorageInterface $attemptStorage, Storage\Lockdown\StorageInterface $lockdownStorage, \Onge\UserManager\Session\SessionProviderInterface $sessionProvider, array $config = array()) {
+	public function __construct(Storage\Attempt\StorageInterface $attemptStorage, Storage\Lockdown\StorageInterface $lockdownStorage, Storage\Warning\StorageInterface $warningStorage, \Onge\UserManager\Session\SessionProviderInterface $sessionProvider, array $config = array()) {
 		$this->attemptStorage = $attemptStorage;
+		$this->warningStorage = $warningStorage;
 		$this->lockdownStorage = $lockdownStorage;
 
 		$this->monitoredInterval = isset($config['monitoredInterval']) ? $config['monitoredInterval'] : 30;
@@ -40,19 +33,15 @@ class ProtectionProvider implements ProtectionProviderInterface {
 		$this->warningLimit = isset($config['warningLimit']) ? $config['warningLimit'] : 10;
 		$this->lockdownLimit = isset($config['lockdownLimit']) ? $config['lockdownLimit'] : 20;
 
+		$this->warningInterval = isset($config['warningInterval']) ? $config['warningInterval'] : 1440; // 24 hours
 		$this->lockdownInterval = isset($config['lockdownInterval']) ? $config['lockdownInterval'] : 30; // should not be less than monitoredInterval - otherwise there is risk user will fail another attempt and will be locked out again at first try.
-
-		$this->minSlowDown = isset($config['minSlowDown']) ? $config['minSlowDown'] : 5000;
-		$this->maxSlowDown = isset($config['maxSlowDown']) ? $config['maxSlowDown'] : 1000000;
-		$this->slowDownPerAttemptGeneral = isset($config['slowDownPerAttemptGeneral']) ? $config['slowDownPerAttemptGeneral'] : 100;
-		$this->slowDownPerAttemptLoginSpecific = isset($config['slowDownPerAttemptLoginSpecific']) ? $config['slowDownPerAttemptLoginSpecific'] : 10000;
 
 		$this->autocleanup = isset($config['autocleanup']) ? $config['autocleanup'] : true;
 
 	}
 
 	/**
-	 * record attempt - failed or otherwise suspictios
+	 * create record attempt - failed or otherwise suspictios
 	 * 
 	 * @param  string $login login name of attempting user
 	 * @param  string $ip    attempt IP address. If null, provider try to guess
@@ -72,10 +61,74 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	}
 
 	/**
+	 * Challenge shall be issued?
+	 * Checks number of failed attempts in monitored interval. 
+	 * If there is more attempts than challenge limit, challenge like CAPTCHA should be added to form
+	 * It is up to you to implement challenge.
+	 * 
+	 * @param  string $login 	attempt login name
+	 * @param  string $ip    	attempt IP address. If null, provider try to guess
+	 * @return bool  		 	true if challenge is required, otherwise false
+	 */
+	public function challenge($login = null, $ip = null) {
+		if (is_null($ip)) {
+			$ip = $this->getIp();
+		}
+
+		if (!empty($login)) {
+			$attempts = $this->attemptStorage()->totalAttemptsLogin($this->monitoredInterval(), $login);
+			if ($attempts > $this->challengeLimit()) {
+				return true;
+			}
+		}
+
+		if (empty($ip)) {
+			// unable to determine IP
+			// maybe access from localhost and IP not set
+			// or something is really wrong
+		} else {
+			$attempts = $this->attemptStorage()->totalAttemptsIp($this->monitoredInterval(), $ip);
+			if ($attempts > $this->challengeLimit()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Warning shall be issued?
+	 * Checks number of failed attempts in monitored interval. 
+	 * If there is more attempts than warning limit, warning should be issued
+	 * It is up to you to implement warning. It may be log record, email to admin, user, force user to change password or whatever else.
+	 * 
+	 * @param  string $login 	attempt login name
+	 * @return bool  		 	true if challenge is required, otherwise false
+	 */
+	public function warning($login) {
+		// autocleanup
+		if ($this->autocleanup) {
+			$this->warningStorage()->cleanup($this->longestInterval());
+		}
+
+		if ($this->warningStorage()->warningExist($this->warningInterval(), $login)) {
+			return true;
+		} else {
+			$attempts = $this->attemptStorage()->totalAttemptsLogin($this->monitoredInterval(), $login);
+			if ($attempts > $this->warningLimit()) {
+				$this->warningStorage()->warning($this->warningInterval(), $login);
+				return true;
+			}				
+		}
+
+		return false;
+	}
+
+	/**
 	 * shall action be locked down? 
 	 * Checks number of failed attempts in monitored interval. 
 	 * If there is more attempts than lockdown limit, lockdown begins
-	 * It is up to you to lock users action
+	 * It is up to you to lock users action since there is lockdown
 	 * 
 	 * @param  string $login attempt login name
 	 * @param  string $ip    attempt IP address. If null, provider try to guess
@@ -97,8 +150,8 @@ class ProtectionProvider implements ProtectionProviderInterface {
 			} else {
 				$attempts = $this->attemptStorage()->totalAttemptsLogin($this->monitoredInterval(), $login);
 				if ($attempts > $this->lockdownLimit()) {
-					$this->lockdownStorage()->lock($this->lockdownInterval(), $ip, $login);
-					return $this->lockdownInterval();
+					$this->lockdownStorage()->lock($this->lockdownInterval(), null, $login);
+					return date('Y-m-d H:i:s', time() + ($this->lockdownInterval() * 60));
 				}				
 			}
 		}
@@ -113,33 +166,13 @@ class ProtectionProvider implements ProtectionProviderInterface {
 			} else {
 				$attempts = $this->attemptStorage()->totalAttemptsIp($this->monitoredInterval(), $ip);
 				if ($attempts > $this->lockdownLimit()) {
-					$this->lockdownStorage()->lock($ip, $login, $this->lockdownInterval());
+					$this->lockdownStorage()->lock($this->lockdownInterval(), $ip, null);
 					return date('Y-m-d H:i:s', time() + ($this->lockdownInterval() * 60));
 				}				
 			}
 		}
 
 		return false;
-	}
-
-	/**
-	 * Delay sensitive operation (such ass atuhentication) and then slow down bruteforce attack
-	 * Delay time should be from miliseconds to seconds, depends on settings
-	 * More failed attempts exists (for this login or in general), longer the delay
-	 * 
-	 * @param  string $login login name of attempting user
-	 * @return void
-	 */
-	public function slowDown($login) {
-		$slowDown = $this->attemptStorage()->totalAttempts($this->monitoredInterval()) * $this->slowDownPerAttemptGeneral;
-		
-		if (!is_null($login)) {
-			$slowDown += $this->attemptStorage()->totalAttemptsLogin($this->monitoredInterval(), $login) * $this->slowDownPerAttemptLoginSpecific;
-		}
-
-		$slowDown = min($this->maxSlowDown, max($this->minSlowDown, $slowDown));
-
-		usleep($slowDown);
 	}
 
 	/**
@@ -170,12 +203,30 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	}
 
 	/**
+	 * get warning interval
+	 * 
+	 * @return int 	minutes of interval
+	 */
+	public function warningInterval() {
+		return $this->warningInterval;
+	}
+
+	/**
 	 * get lockdown interval
 	 * 
 	 * @return int 	minutes of interval
 	 */
 	public function lockdownInterval() {
 		return $this->lockdownInterval;
+	}
+
+	/**
+	 * storage for user warning
+	 * 
+	 * @return Storage\Warning\StorageInterface
+	 */
+	protected function warningStorage() {
+		return $this->warningStorage;
 	}
 
 	/**
@@ -194,6 +245,15 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	 */
 	protected function attemptStorage() {
 		return $this->attemptStorage;
+	}
+
+	/**
+	 * how many attempts before warning
+	 * 
+	 * @return int number of attempts
+	 */
+	public function warningLimit() {
+		return $this->warningLimit;
 	}
 
 	/**

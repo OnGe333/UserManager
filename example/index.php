@@ -22,7 +22,7 @@ $sessionProvider = new Session\SessionProvider();
 
 $dependencies = array(
 	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), $sessionProvider, new Cookie\CookieProvider(array('secure' => false))), 
-	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), $sessionProvider),
+	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), new Protection\Storage\Warning\Dibi(), $sessionProvider),
 );
 
 UserManager::prepareInstance($dependencies);
@@ -58,7 +58,10 @@ if (UserManager::check()) {
 		if (UserManager::check()) {
 			echo '<br/>Already logged in';
 		} else {
-			UserManager::slowDown($_POST['login']);
+			if (UserManager::warning($_POST['login'])) {
+				echo '<br/>Warning issued! Too many failed attempts';
+			}
+
 			if ($wait = UserManager::lockdown($_POST['login'], '127.0.0.1')) {
 				echo '<br/>Too many failed attempts, account locked since ' . $wait;
 			} else {

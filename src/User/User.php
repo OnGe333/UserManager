@@ -2,16 +2,62 @@
 namespace Onge\UserManager\User;
 
 class User implements UserInterface {
+	/**
+	 * user id
+	 * @var int/null
+	 */
 	protected $id;
+
+	/**
+	 * user email
+	 * @var string/null
+	 */
 	protected $email;
+
+	/**
+	 * hashed user password
+	 * @var string/null
+	 */
 	protected $password;
+
+	/**
+	 * is user active? 
+	 * @var int/null 1/0
+	 */
 	protected $active;
+
+	/**
+	 * activation code for user. Should be null, if already activated
+	 * @var string/null
+	 */
 	protected $activationCode;
+
+	/**
+	 * datetime of user account activation
+	 * @var string/null
+	 */
 	protected $activationTime;
+
+	/**
+	 * datetime of user account creation
+	 * @var string/null
+	 */
 	protected $createdTime;
+
+	/**
+	 * pasword reset code. Should be null, if password reset is not issued or expired
+	 * @var string/null
+	 */
 	protected $passwordResetCode;
+
+	/**
+	 * datetime of password reset code generation
+	 * @var string/null
+	 */
 	protected $passwordResetTime;
+
 	protected $lastLogin;
+
 	protected $permanentAuthCode;
 
 	protected $passwordCost = 10; // password_hash cost value, see: http://php.net/manual/en/function.password-hash.php
