@@ -144,7 +144,7 @@ class UserManager {
 			}
 			return false;
 		} elseif ($permalogin = static::getInstance()->cookieProvider()->get('permalogin')) {
-			$userData = static::getInstance()->userProvider()->findByPermanentLogin($permalogin);
+			$user = static::getInstance()->userProvider()->findByPermanentLogin($permalogin);
 			if ($user) {
 				static::getInstance()->setCurrentUser($user);
 				return true;
@@ -220,7 +220,7 @@ class UserManager {
 			static::getInstance()->sessionProvider()->login($userId);
 
 			if ($permanent) {
-				$user = static::getInstance()->userProvider()->newUser(static::getInstance()->userProvider()->findById($userId));
+				$user = static::getInstance()->userProvider()->findById($userId);
 				$authCode = static::getInstance()->userProvider()->randomString();
 				$user->setAuthCode($authCode);
 

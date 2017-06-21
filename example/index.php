@@ -52,7 +52,7 @@ if (UserManager::check()) {
 <?php
 } else {
 ?>
-	<h2>Login</h2>
+	<h2 id="login">Login</h2>
 	<?php
 	if (isset($_POST['login']) && isset($_POST['password'])) {
 		if (UserManager::check()) {
@@ -67,7 +67,7 @@ if (UserManager::check()) {
 			} else {
 				try {
 					if (UserManager::authenticate($_POST['login'], $_POST['password'], isset($_POST['permanent']))) {
-						echo '<br/>Success, refresh to see you logged in';
+						echo '<br/>Success, <a href="./">refresh</a> to see you logged in';
 					} else {
 						UserManager::attempt($_POST['login']);
 						echo '<br/>Authentication failed';
@@ -80,7 +80,7 @@ if (UserManager::check()) {
 	}
 
 	?>
-	<form action="./" method="post">
+	<form action="./#login" method="post">
 		<div>
 			<label>
 				E-mail: <input type="text" name="login" value="<?php echo (isset($_POST['login']) ? htmlspecialchars($_POST['login']) : '') ?>" />
@@ -109,14 +109,7 @@ if (UserManager::check()) {
 	echo '<br/>Not authenticated';
 }
 ?>
-<h2>Find user by id</h2>
-<?php
-$user = UserManager::findById(2);
-echo '<pre>';
-var_dump($user);
-echo '</pre>';
-?>
-<h2>Registration</h2>
+<h2 id="reg">Registration</h2>
 <?php
 if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 	try {
@@ -133,7 +126,7 @@ if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 	}
 }
 ?>
-<form action="./" method="post">
+<form action="./#reg" method="post">
 	<div>
 		<label>
 			E-mail: <input type="text" name="reg-email" value="<?php echo (isset($_POST['reg-email']) ? htmlspecialchars($_POST['reg-email']) : '') ?>" />
@@ -149,14 +142,14 @@ if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 	</div>
 </form>
 
-<h2>Activation</h2>
+<h2 id="activate">Activation</h2>
 <?php
 if (isset($_GET['reg-activate'])) {
 	try {
 		if (UserManager::activateByCode($_GET['reg-activate'])) {
 			echo '<br/> user activated';
 		} else {
-			echo '<br/> invalid activation code. Need a refresh?';
+			echo '<br/> invalid activation code. Need <a href="./#activate-refresh">refresh activation</a>?';
 		}
 	} catch (UserManagerException $e) {
 		echo '<br/>Error: ' . $e->getMessage();
@@ -164,7 +157,7 @@ if (isset($_GET['reg-activate'])) {
 }
 
 ?>
-<form action="./" method="get">
+<form action="./#activate" method="get">
 	<div>
 		<label>
 			Code: <input type="text" name="reg-activate" value="<?php echo (isset($_GET['reg-activate']) ? htmlspecialchars($_GET['reg-activate']) : '') ?>" />
@@ -175,7 +168,7 @@ if (isset($_GET['reg-activate'])) {
 	</div>
 </form>
 
-<h2>Refresh activation</h2>
+<h2 id="activate-refresh">Refresh activation</h2>
 <?php
 if (isset($_POST['reg-email-activate'])) {
 	try {
@@ -191,7 +184,7 @@ if (isset($_POST['reg-email-activate'])) {
 }
 
 ?>
-<form action="./" method="post">
+<form action="./#activate-refresh" method="post">
 	<div>
 		<label>
 			E-mail: <input type="text" name="reg-email-activate" value="<?php echo (isset($_POST['reg-email-activate']) ? htmlspecialchars($_POST['reg-email-activate']) : '') ?>" />
@@ -201,7 +194,7 @@ if (isset($_POST['reg-email-activate'])) {
 		<input type="submit"/>
 	</div>
 </form>
-<h2>Password reset - get reset code</h2>
+<h2 id="pass-reset">Password reset - get reset code</h2>
 <p>Code is for one time use. New one is generated only if old one does not exist, is already used or is too old</p>
 <?php
 if (isset($_POST['reset-email'])) {
@@ -213,7 +206,7 @@ if (isset($_POST['reset-email'])) {
 	}
 }
 ?>
-<form action="./" method="post">
+<form action="./#pass-reset" method="post">
 	<div>
 		<label>
 			E-mail: <input type="text" name="reset-email" value="<?php echo (isset($_POST['reset-email']) ? htmlspecialchars($_POST['reset-email']) : '') ?>" />
@@ -223,25 +216,27 @@ if (isset($_POST['reset-email'])) {
 		<input type="submit"/>
 	</div>
 </form>
-<h2>Password reset - set password</h2>
+<h2 id="pass-new">Password reset - set password</h2>
 <p></p>
 <?php
 if (isset($_GET['reset-code'])) {
 	if (UserManager::validatePasswordResetCode($_GET['reset-code'])) {
-		try {
-			if (UserManager::resetPassword($_GET['reset-code'], $_POST['reset-password'])) {
-				echo '<br/>Password has been set';
-			} else {
-				echo '<br/>Unable to set password';
+		if (isset($_POST['reset-password'])) {
+			try {
+				if (UserManager::resetPassword($_GET['reset-code'], $_POST['reset-password'])) {
+					echo '<br/>Password has been set';
+				} else {
+					echo '<br/>Unable to set password';
+				}
+			} catch (UserManagerArgumentException $e) {
+				echo '<br/>' . $e->getMessage();
+			} catch (UserManagerException $e) {
+				echo '<br/>Error: ' . $e->getMessage();
 			}
-		} catch (UserManagerArgumentException $e) {
-			echo '<br/>' . $e->getMessage();
-		} catch (UserManagerException $e) {
-			echo '<br/>Error: ' . $e->getMessage();
 		}
 ?>
 <h3>Reset password</h3>
-<form action="./?reset-code=<?php echo urlencode(htmlspecialchars($_GET['reset-code'])); ?>" method="post">
+<form action="./?reset-code=<?php echo urlencode(htmlspecialchars($_GET['reset-code'])); ?>#pass-new" method="post">
 	<div>
 		<label>
 			New password: <input type="text" name="reset-password" value="<?php echo (isset($_POST['reset-password']) ? htmlspecialchars($_POST['reset-password']) : '') ?>" />
@@ -259,7 +254,7 @@ if (isset($_GET['reset-code'])) {
 
 ?>
 <h3>Insert code</h3>
-<form action="./" method="get">
+<form action="./#pass-reset" method="get">
 	<div>
 		<label>
 			Code: <input type="text" name="reset-code" value="<?php echo (isset($_GET['reset-code']) ? htmlspecialchars($_GET['reset-code']) : '') ?>" />
@@ -269,6 +264,14 @@ if (isset($_GET['reset-code'])) {
 		<input type="submit"/>
 	</div>
 </form>
+
+<h2>Find user by id</h2>
+<?php
+$user = UserManager::findById(2);
+echo '<pre>';
+var_dump($user);
+echo '</pre>';
+?>
 <?php
 
 echo '<br/>time: ' . number_format(microtime(true) - $init, 3);
