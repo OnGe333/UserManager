@@ -21,7 +21,7 @@ $dbCredentials = array(
 $sessionProvider = new Session\SessionProvider();
 
 $dependencies = array(
-	'userProvider' => new User\UserProvider(new User\Storage\Dibi(), $sessionProvider, new Cookie\CookieProvider(array('secure' => false))), 
+	'userProvider' => new User\UserProvider(new User\Storage\Dibi()), 
 	'protectionProvider' => new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), new Protection\Storage\Warning\Dibi(), $sessionProvider),
 );
 

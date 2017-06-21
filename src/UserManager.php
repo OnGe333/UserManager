@@ -1,17 +1,17 @@
-<?php 
+<?php
 namespace Onge\UserManager;
 
 class UserManager {
 	/**
 	 * Instance of user manager object
-	 * 
+	 *
 	 * @var Onge\UserManager\UserManager
 	 */
 	protected static $instance;
 
 	/**
 	 * Instance of currently logged in user
-	 * 
+	 *
 	 * @var Onge\UserManager\User\UserInterface
 	 */
 	protected $currentUser;
@@ -29,32 +29,32 @@ class UserManager {
 	protected $permaloginSecure = true;
 
 	protected function __construct(User\UserProviderInterface $userProvider, Session\SessionProviderInterface $sessionProvider, Cookie\CookieProviderInterface $cookieProvider, Protection\ProtectionProviderInterface $protectionProvider) {
-		
+
 		$this->userProvider = $userProvider;
-		
+
 		$this->sessionProvider = $sessionProvider;
-		
+
 		$this->cookieProvider = $cookieProvider;
-		
+
 		$this->protectionProvider = $protectionProvider;
 	}
 
 	/**
-	 * Set up dependencies 
-	 * 
+	 * Set up dependencies
+	 *
 	 * @param  array  $dependencies 	see __constructor params
 	 * @return void
 	 */
 	public static function prepareInstance(array $dependencies) {
 		if (isset($dependencies['userProvider'])) {
-			$userProvider = isset($dependencies['userProvider']) ? $dependencies['userProvider'] : new User\UserProvider(new User\Storage\Dibi(), new Session\SessionProvider());
 			$sessionProvider = isset($dependencies['sessionProvider']) ? $dependencies['sessionProvider'] : new Session\SessionProvider();
+			$userProvider = isset($dependencies['userProvider']) ? $dependencies['userProvider'] : new User\UserProvider(new User\Storage\Dibi());
 			$cookieProvider = isset($dependencies['cookieProvider']) ? $dependencies['cookieProvider'] : new Cookie\CookieProvider();
-			$protectionProvider = isset($dependencies['protectionProvider']) ? $dependencies['protectionProvider'] : new Protection\ProtectionProvider();
+			$protectionProvider = isset($dependencies['protectionProvider']) ? $dependencies['protectionProvider'] : new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), new Protection\Storage\Warning\Dibi(), $sessionProvider);
 		} else {
 			throw new Exception('User Provider not defined');
 		}
-		
+
 		static::$instance = new static($userProvider, $sessionProvider, $cookieProvider, $protectionProvider);
 	}
 
@@ -99,7 +99,7 @@ class UserManager {
 	}
 	/**
 	 * Get instance of user by id
-	 * 
+	 *
 	 * @param  int 		$id 		id of user to find
 	 * @return Onge\UserManager\User\UserInterface
 	 */
@@ -109,7 +109,7 @@ class UserManager {
 
 	/**
 	 * Get instance of user by login parameter
-	 * 
+	 *
 	 * @param  string	$login 		login name of user to find
 	 * @return Onge\UserManager\User\UserInterface
 	 */
@@ -130,22 +130,22 @@ class UserManager {
 	}
 	/**
 	 * Is user logged in? Return true if is, otherwise false
-	 * 
-	 * @return bool 	
+	 *
+	 * @return bool
 	 */
 	public static function check() {
 		if (static::currentUser() instanceof UserInterface) {
 			return true;
 		} elseif (static::getInstance()->sessionProvider()->check()) {
 			$user = static::getInstance()->userProvider()->findById(static::getInstance()->sessionProvider()->get('id'));
-			if ($user) {	
+			if ($user) {
 				static::getInstance()->setCurrentUser($user);
 				return true;
 			}
 			return false;
 		} elseif ($permalogin = static::getInstance()->cookieProvider()->get('permalogin')) {
 			$userData = static::getInstance()->userProvider()->findByPermanentLogin($permalogin);
-			if ($user) {	
+			if ($user) {
 				static::getInstance()->setCurrentUser($user);
 				return true;
 			}
@@ -157,7 +157,7 @@ class UserManager {
 
 	/**
 	 * Get instance of currently logged in user
-	 * 
+	 *
 	 * @return Onge\UserManager\User\UserInterface
 	 */
 	public static function currentUser() {
@@ -167,7 +167,7 @@ class UserManager {
 
 	/**
 	 * Get instance of currently logged in user
-	 * 
+	 *
 	 * @return Onge\UserManager\User\UserInterface
 	 */
 	public function getCurrentUser() {
@@ -177,7 +177,7 @@ class UserManager {
 
 	/**
 	 * Set currently logged in user
-	 * 
+	 *
 	 * @param User\UserInterface $user User container
 	 */
 	public function setCurrentUser(User\UserInterface $user) {
@@ -186,7 +186,7 @@ class UserManager {
 
 	/**
 	 * Create new user and return it. Requirements are set in UserProvider
-	 * 
+	 *
 	 * @param  array 	$data 	associative array of user data.
 	 * @return Onge\UserManager\User\UserInterface or false on error
 	 */

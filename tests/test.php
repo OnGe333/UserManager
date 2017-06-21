@@ -1,6 +1,8 @@
 <?php
 require_once (__DIR__ . '/../vendor/autoload.php');
-require_once (__DIR__ . '/StorageMockup.php');
+require_once (__DIR__ . '/UserStorageMockup.php');
+require_once (__DIR__ . '/SessionMockup.php');
+require_once (__DIR__ . '/CookieMockup.php');
 
 use PHPUnit\Framework\TestCase;
 use Onge\UserManager\UserManager;
@@ -11,11 +13,14 @@ class UserManagerTest extends TestCase
 
 	public function setUp() {
 		$session = new Onge\UserManager\Session\SessionMockup();
-		$storage = new Onge\UserManager\User\Storage\StorageMockup();
-		$this->userContainerClass = $storage->getContainerClass();
+		$userStorage = new Onge\UserManager\User\Storage\StorageMockup();
+		$cookie = new Onge\UserManager\Cookie\CookieMockup();
+		$this->userContainerClass = $userStorage->getContainerClass();
 
 		$dependencies = array(
-			'userProvider' => new Onge\UserManager\User\UserProvider($storage, $session)
+			'userProvider' => new Onge\UserManager\User\UserProvider($userStorage),
+			'sessionProvider' => $session,
+			'cookieProvider' => $cookie,
 		);
 
 		UserManager::prepareInstance($dependencies);
@@ -70,6 +75,10 @@ class UserManagerTest extends TestCase
 		$this->assertEquals($length, mb_strlen(UserManager::getUserProvider()->randomString($length)));
 		$length = 100;
 		$this->assertEquals($length, mb_strlen(UserManager::getUserProvider()->randomString($length)));
+	}
+
+	public function testUserSetters() {
+		$user = UserManager::getUserProvider()->newUser();
 	}
 }
 ?>

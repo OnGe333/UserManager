@@ -6,15 +6,10 @@ use Onge\UserManager\UserManagerArgumentException;
 class UserProvider implements UserProviderInterface {
 	protected $storageProvider;
 
-//	protected $sessionProvider;
-
 	protected $passwordLength = 8;
 
-	public function __construct(Storage\StorageInterface $storageProvider/*, \Onge\UserManager\Session\SessionProviderInterface $sessionProvider*/) {
-		
+	public function __construct(Storage\StorageInterface $storageProvider) {	
 		$this->storageProvider = $storageProvider;
-
-//		$this->sessionProvider = $sessionProvider;
 	}
 
 	/**
@@ -186,6 +181,13 @@ class UserProvider implements UserProviderInterface {
 		return false;
 	}
 
+	/**
+	 * create password reset code and return it. 
+	 * If code is already created and not expired, return allways same code
+	 * 
+	 * @param  string $email 	email of reseting user
+	 * @return string/false  	pasword reset code, false on failure
+	 */
 	public function passwordResetCode($email) {
 		if ($data = $this->storageProvider->findByEmail($email)) {
 			$user = $this->newUser($data);

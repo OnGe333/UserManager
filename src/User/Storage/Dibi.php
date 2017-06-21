@@ -20,6 +20,10 @@ class Dibi implements StorageInterface {
 
 	protected $permanentLogin;
 
+	/**
+	 * create storage instance
+	 * @param array $config associative array with settings
+	 */
 	public function __construct(array $config = []) {
 		$this->containerClass = isset($config['containerClass']) ? $config['containerClass'] : 'Onge\\UserManager\\User\\User';
 		$this->table = isset($config['table']) ?$config['table'] : 'user';
