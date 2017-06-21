@@ -56,12 +56,27 @@ class User implements UserInterface {
 	 */
 	protected $passwordResetTime;
 
+	/**
+	 * last login datetime
+	 * @var string/null
+	 */
 	protected $lastLogin;
 
+	/**
+	 * permanent auth code expected from cookie
+	 * @var string/null
+	 */
 	protected $permanentAuthCode;
 
-	protected $passwordCost = 10; // password_hash cost value, see: http://php.net/manual/en/function.password-hash.php
+	/**
+	 * password_hash cost value, see: http://php.net/manual/en/function.password-hash.php
+	 * @var integer
+	 */
+	protected $passwordCost = 10;
 
+	/**
+	 * @param array $data	associative array with user data
+	 */
 	public function __construct(array $data) {
 		$this->id = isset($data['id']) ? $data['id'] : null;
 		$this->email = isset($data['email']) ? $data['email'] : (isset($data['login']) ? $data['login'] : null);
@@ -77,6 +92,11 @@ class User implements UserInterface {
 
 	}
 
+	/**
+	 * get user data for storage
+	 *
+	 * @return array	all updateable user data
+	 */
 	public function getData() {
 		return array(
 //			'id' = $this->id,	// shoud not be updated
@@ -93,46 +113,75 @@ class User implements UserInterface {
 			);
 	}
 
-	public function randomString($length = 48) {
-		$bytes = random_bytes($length);
-
-		$string = mb_substr(str_replace(array('/', '+', '='), (mt_rand(0, 1) ? '-' : '_'), base64_encode($bytes)), 0, $length);
-
-		if (mb_strlen($string) == $length) {
-			return $string;
-		} else {
-			throw new UserManagerException(_('Unable to generate random string.'));
-		}
-	}
-
+	/**
+	 * get user id
+	 *
+	 * @return mixed	user id
+	 */
 	public function id() {
 		return $this->id;
 	}
 
+	/**
+	 * set user id
+	 *
+	 * @param mixed $value
+	 */
 	public function setId($value) {
 		$this->id = $value;
 	}
 
+	/**
+	 * get user login
+	 *
+	 * @return string	user login
+	 */
 	public function login() {
 		return $this->email;
 	}
 
+	/**
+	 * set user login
+	 *
+	 * @param mixed $value
+	 */
 	public function setLogin($value) {
 		$this->email = $value;
 	}
 
+	/**
+	 * get user email
+	 *
+	 * @return string	user email
+	 */
 	public function email() {
 		return $this->email;
 	}
 
+	/**
+	 * set user email
+	 *
+	 * @param string 	$value
+	 */
 	public function setEmail($value) {
 		$this->email = $value;
 	}
 
+	/**
+	 * set password - password is immediately hashed and can not be retrived
+	 *
+	 * @param string $value
+	 */
 	public function setPassword($value) {
 		$this->password = password_hash($value, PASSWORD_DEFAULT, array('cost' => $this->passwordCost));
 	}
 
+	/**
+	 * verify if password is valid
+	 *
+	 * @param  string 	$value	password to check
+	 * @return bool        		true if valid, otherwise false
+	 */
 	public function checkPassword($value) {
 		$verified = password_verify($value, $this->password);
 
@@ -146,26 +195,56 @@ class User implements UserInterface {
 		return false;
 	}
 
+	/**
+	 * is user active?
+	 *
+	 * @return bool
+	 */
 	public function active() {
 		return $this->active;
 	}
 
+	/**
+	 * set user active flag
+	 *
+	 * @param boolean $active true/false
+	 */
 	public function setActive($active = true) {
 		$this->active = $active;
 	}
 
+	/**
+	 * get current activation code
+	 *
+	 * @return string
+	 */
 	public function activationCode() {
 		return $this->activationCode;
 	}
 
+	/**
+	 * delete current activation code, so it is no longer valid
+	 *
+	 * @return string
+	 */
 	public function invalidateActivationCode() {
 		$this->activationCode = null;
 	}
 
+	/**
+	 * get activation time
+	 *
+	 * @return string 	activation datetime
+	 */
 	public function activationTime() {
 		return $this->activationTime;
 	}
 
+	/**
+	 * get current password reset code
+	 *
+	 * @return string
+	 */
 	public function passwordResetCode() {
 		return $this->passwordResetCode;
 	}

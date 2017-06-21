@@ -8,6 +8,8 @@ class UserProvider implements UserProviderInterface {
 
 	protected $passwordLength = 8;
 
+	protected $passwordResetCodeLifetime = 86400;
+
 	public function __construct(Storage\StorageInterface $storageProvider) {
 		$this->storageProvider = $storageProvider;
 	}
@@ -191,7 +193,7 @@ class UserProvider implements UserProviderInterface {
 	public function passwordResetCode($email) {
 		if ($data = $this->storageProvider->findByEmail($email)) {
 			$user = $this->newUser($data);
-			if (is_null($user->passwordResetTime()) || (strtotime($user->passwordResetTime()) + 86400) < time()) {
+			if (is_null($user->passwordResetTime()) || (strtotime($user->passwordResetTime()) + $this->passwordResetCodeLifetime) < time()) {
 				$user->setPasswordResetCode($this->randomString());
 				$user->setPasswordResetTime();
 				$this->save($user);
@@ -204,8 +206,12 @@ class UserProvider implements UserProviderInterface {
 	}
 
 	public function validatePasswordResetCode($code) {
-		if ($this->storageProvider->findByPasswordResetCode($code)) {
-			return true;
+		if ($data = $this->storageProvider->findByPasswordResetCode($code)) {
+			if ((strtotime($data['password_reset_time']) + $this->passwordResetCodeLifetime) > time()) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 
 		return false;

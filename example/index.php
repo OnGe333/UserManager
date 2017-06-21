@@ -53,6 +53,9 @@ if (UserManager::check()) {
 } else {
 ?>
 	<h2 id="login">Login</h2>
+	<p>Login is protected. After many failed attempts, warning is issued and if there is too many failed attempts, login is temporarily locked down. See Onge\UserManager\ProtectionProvider for more details.</p>
+	<p>You may use any other protection you like. ProtectionProvider is not mandatory.</p>
+
 	<?php
 	if (isset($_POST['login']) && isset($_POST['password'])) {
 		if (UserManager::check()) {
@@ -62,7 +65,7 @@ if (UserManager::check()) {
 				echo '<br/>Warning issued! Too many failed attempts';
 			}
 
-			if ($wait = UserManager::lockdown($_POST['login'], '127.0.0.1')) {
+			if ($wait = UserManager::lockdown($_POST['login'], '127.0.0.1')) { // place real ip here
 				echo '<br/>Too many failed attempts, account locked since ' . $wait;
 			} else {
 				try {
@@ -110,6 +113,7 @@ if (UserManager::check()) {
 }
 ?>
 <h2 id="reg">Registration</h2>
+<p>User account is created and inactive, until user verify it by activation code. Code should be sent via e-mail or another required communication channel. Activation code is unique, so there is no need to send any other identification with it. Code is one time use, so it leaves no trace about who registered or what is their account.</p>
 <?php
 if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 	try {
@@ -143,6 +147,7 @@ if (isset($_POST['reg-email']) && isset($_POST['reg-password'])) {
 </form>
 
 <h2 id="activate">Activation</h2>
+<p>Activation code may be used only once, then is forgotten.</p>
 <?php
 if (isset($_GET['reg-activate'])) {
 	try {
@@ -169,6 +174,8 @@ if (isset($_GET['reg-activate'])) {
 </form>
 
 <h2 id="activate-refresh">Refresh activation</h2>
+<p>Activation code may be lost. Refresh creates new activation code to send to user. </p>
+<p>This feature is intended for customer care staff. Letting users to it means some risk.</p>
 <?php
 if (isset($_POST['reg-email-activate'])) {
 	try {
@@ -195,7 +202,7 @@ if (isset($_POST['reg-email-activate'])) {
 	</div>
 </form>
 <h2 id="pass-reset">Password reset - get reset code</h2>
-<p>Code is for one time use. New one is generated only if old one does not exist, is already used or is too old</p>
+<p>Password reset code is for one time use. New one is generated only if old one does not exist, is already used or is too old.</p>
 <?php
 if (isset($_POST['reset-email'])) {
 	$code = UserManager::passwordResetCode($_POST['reset-email']);
@@ -236,6 +243,7 @@ if (isset($_GET['reset-code'])) {
 		}
 ?>
 <h3>Reset password</h3>
+<p><strong>Code is valid</strong> - put yout new password here:</p>
 <form action="./?reset-code=<?php echo urlencode(htmlspecialchars($_GET['reset-code'])); ?>#pass-new" method="post">
 	<div>
 		<label>
@@ -253,7 +261,8 @@ if (isset($_GET['reset-code'])) {
 }
 
 ?>
-<h3>Insert code</h3>
+<h3>Insert password reset code</h3>
+<p>If code is valid and is not too old (default 1 day), you may set new password.</p>
 <form action="./#pass-reset" method="get">
 	<div>
 		<label>
@@ -266,8 +275,10 @@ if (isset($_GET['reset-code'])) {
 </form>
 
 <h2>Find user by id</h2>
+<?php $userId = 2; ?>
+<p>Just dump user (id <?php echo $userId; ?>) to see what is inside</p>
 <?php
-$user = UserManager::findById(2);
+$user = UserManager::findById($userId);
 echo '<pre>';
 var_dump($user);
 echo '</pre>';
