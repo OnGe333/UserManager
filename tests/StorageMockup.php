@@ -8,7 +8,7 @@ class StorageMockup implements StorageInterface {
 
 	public function __construct(array $config = []) {
 		$this->containerClass = isset($config['containerClass']) ? $config['containerClass'] : 'Onge\\UserManager\\User\\User';
-		
+
 		$record['id'] = 1;
 		$record['email'] = 'test@test.com';
 		$record['password'] = 'password';

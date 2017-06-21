@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Onge\UserManager\Session;
 
 class SessionMockup implements SessionProviderInterface {

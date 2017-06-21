@@ -21,7 +21,7 @@ class User implements UserInterface {
 	protected $password;
 
 	/**
-	 * is user active? 
+	 * is user active?
 	 * @var int/null 1/0
 	 */
 	protected $active;
@@ -104,7 +104,7 @@ class User implements UserInterface {
 			throw new UserManagerException(_('Unable to generate random string.'));
 		}
 	}
-	
+
 	public function id() {
 		return $this->id;
 	}

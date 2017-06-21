@@ -3,7 +3,7 @@ namespace Onge\UserManager\Protection\Storage\Warning;
 
 class Dibi implements StorageInterface {
 	protected $table;
-	
+
 	protected $ip;
 
 	protected $login;

@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Onge\UserManager\Session;
 
 interface SessionProviderInterface {
@@ -7,6 +7,6 @@ interface SessionProviderInterface {
 	public function check();
 
 	public function login($id);
-	
+
 	public function logout();
 }

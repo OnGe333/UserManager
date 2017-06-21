@@ -18,14 +18,14 @@ interface StorageInterface {
 	/**
 	 * is there lockdown in effect for IP?
 	 * @param  string  $ip IP address to lock down
-	 * @return boolean     
+	 * @return boolean
 	 */
 	public function isLockedIp(string $ip);
 
 	/**
 	 * is there lockdown in effect for user login?
 	 * @param  string  $login user login to lock down
-	 * @return boolean     
+	 * @return boolean
 	 */
 	public function isLockedLogin(string $login);
 

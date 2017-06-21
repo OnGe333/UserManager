@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Onge\UserManager\Cookie;
 
 use Onge\UserManager\UserManagerException;
@@ -11,7 +11,7 @@ class CookieMockup implements CookieProviderInterface {
 	protected $domain;
 
 	protected $secure;
-	
+
 	protected $httponly;
 
 	public function __construct(array $cookieOptions = array(), $prefix = 'userManager_') {

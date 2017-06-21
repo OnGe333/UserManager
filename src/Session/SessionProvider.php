@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Onge\UserManager\Session;
 
 class SessionProvider implements SessionProviderInterface {
@@ -25,7 +25,7 @@ class SessionProvider implements SessionProviderInterface {
 
 	/**
 	 * clear user session
-	 * 
+	 *
 	 * @return void
 	 */
 	public function logout() {

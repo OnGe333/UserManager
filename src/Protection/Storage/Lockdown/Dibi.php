@@ -7,7 +7,7 @@ class Dibi implements StorageInterface {
 	 * @var string
 	 */
 	protected $table;
-	
+
 	/**
 	 * column name
 	 * @var string
@@ -19,7 +19,7 @@ class Dibi implements StorageInterface {
 	 * @var string
 	 */
 	protected $login;
-	
+
 	/**
 	 * column name
 	 * @var string
@@ -49,7 +49,7 @@ class Dibi implements StorageInterface {
 	/**
 	 * is there lockdown in effect for IP?
 	 * @param  string  $ip IP address to lock down
-	 * @return boolean     
+	 * @return boolean
 	 */
 	public function isLockedIp(string $ip) {
 		return \dibi::query('SELECT %n', $this->expires, ' FROM %n', $this->table, 'WHERE %n', $this->ip, ' = %s', $ip, 'AND %n', $this->expires, ' > NOW() ORDER BY expires DESC LIMIT 1')->fetchSingle();
@@ -58,7 +58,7 @@ class Dibi implements StorageInterface {
 	/**
 	 * is there lockdown in effect for user login?
 	 * @param  string  $login user login to lock down
-	 * @return boolean     
+	 * @return boolean
 	 */
 	public function isLockedLogin(string $login) {
 		return \dibi::query('SELECT %n', $this->expires, ' FROM %n', $this->table, 'WHERE %n', $this->login, ' = %s', $login, 'AND %n', $this->expires, ' > NOW() ORDER BY expires DESC LIMIT 1')->fetchSingle();

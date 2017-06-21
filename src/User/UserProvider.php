@@ -8,13 +8,13 @@ class UserProvider implements UserProviderInterface {
 
 	protected $passwordLength = 8;
 
-	public function __construct(Storage\StorageInterface $storageProvider) {	
+	public function __construct(Storage\StorageInterface $storageProvider) {
 		$this->storageProvider = $storageProvider;
 	}
 
 	/**
 	 * get user data by id
-	 * 
+	 *
 	 * @param  int 	$id 	id of user
 	 * @return \Onge\UserManager\User\UserInterface
 	 */
@@ -28,7 +28,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * get user data by login
-	 * 
+	 *
 	 * @param  string 	$login
 	 * @return \Onge\UserManager\User\UserInterface
 	 */
@@ -42,7 +42,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * get user data by permanent login code
-	 * 
+	 *
 	 * @param  string 	$id 	id of user
 	 * @return \Onge\UserManager\User\UserInterface
 	 */
@@ -70,7 +70,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * check registration data, throw UserManagerArgumentException if something wrong.
-	 * 
+	 *
 	 * @param  array  $data [description]
 	 * @return bool
 	 */
@@ -110,7 +110,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * create user container with data
-	 * 
+	 *
 	 * @param  array 	$data 	fill containers
 	 * @return UserInterface
 	 */
@@ -121,7 +121,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * use activation code to activate user
-	 * 
+	 *
 	 * @param  string 	$code 	activation code
 	 * @return bool 	return true on success, otherwise false
 	 */
@@ -138,8 +138,8 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * create new activation code for user. Old code is replaced
-	 * 
-	 * @param  string 	$email 	email of user 
+	 *
+	 * @param  string 	$email 	email of user
 	 * @return string/false 	new code on success, otherwise false
 	 */
 	public function refreshActivationCode($email) {
@@ -160,7 +160,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * check user credentials and log in if valid
-	 * 
+	 *
 	 * @param  string 	$login    	user login
 	 * @param  string 	$password 	user password
 	 * @return bool
@@ -170,21 +170,21 @@ class UserProvider implements UserProviderInterface {
 			$user = $this->newUser($data);
 
 			if ($user->checkPassword($password)) {
-				if ($user->active()) {				
+				if ($user->active()) {
 					$user->setLastLogin();
 					$this->save($user);
 					return $user->id();
 				}
 			}
 		}
-		
+
 		return false;
 	}
 
 	/**
-	 * create password reset code and return it. 
+	 * create password reset code and return it.
 	 * If code is already created and not expired, return allways same code
-	 * 
+	 *
 	 * @param  string $email 	email of reseting user
 	 * @return string/false  	pasword reset code, false on failure
 	 */
@@ -200,7 +200,7 @@ class UserProvider implements UserProviderInterface {
 			return $user->passwordResetCode();
 		} else {
 			return false;
-		}		
+		}
 	}
 
 	public function validatePasswordResetCode($code) {
@@ -221,7 +221,7 @@ class UserProvider implements UserProviderInterface {
 			return true;
 		}
 
-		return false;		
+		return false;
 	}
 
 	public function randomString($length = 48, $uniqueColumn = false) {
@@ -248,7 +248,7 @@ class UserProvider implements UserProviderInterface {
 
 	/**
 	 * save user data
-	 * 
+	 *
 	 * @param  UserInterface 	$user 	container with user data
 	 * @return bool
 	 */

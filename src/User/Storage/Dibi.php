@@ -5,7 +5,7 @@ class Dibi implements StorageInterface {
 	protected $containerClass;
 
 	protected $table;
-	
+
 	protected $id;
 
 	protected $login;
@@ -42,7 +42,7 @@ class Dibi implements StorageInterface {
 
 	public function findById($id) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->id, ' = %i', $id)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
@@ -52,7 +52,7 @@ class Dibi implements StorageInterface {
 
 	public function findByEmail($email) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->email, ' = %s', $email)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
@@ -62,7 +62,7 @@ class Dibi implements StorageInterface {
 
 	public function findByLogin($login) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->login, ' = %s', $login)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
@@ -72,7 +72,7 @@ class Dibi implements StorageInterface {
 
 	public function findByActivationCode($code) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->activationCode, ' = %s', $code)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
@@ -82,7 +82,7 @@ class Dibi implements StorageInterface {
 
 	public function findByPermanentLogin($code) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->permanentAuthCode, ' = %s', $code)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
@@ -92,12 +92,12 @@ class Dibi implements StorageInterface {
 
 	public function findByPasswordResetCode($code) {
 		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $this->passwordResetCode, ' = %s', $code)->fetch();
-		
+
 		if (empty($data)) {
 			return false;
 		} else {
 			return $data->toArray();
-		}		
+		}
 	}
 
 	public function save(\Onge\UserManager\User\UserInterface $user) {

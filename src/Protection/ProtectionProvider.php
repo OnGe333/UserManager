@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Onge\UserManager\Protection;
 
 class ProtectionProvider implements ProtectionProviderInterface {
@@ -13,9 +13,9 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	protected $autocleanup;
 
 	/**
-	 * Set up dependencies and configurate variables. 
+	 * Set up dependencies and configurate variables.
 	 * Any config variable may be ommited, then default value is set
-	 * 
+	 *
 	 * @param Storage\Attempt\StorageInterface                   $attemptStorage  storage provider instance
 	 * @param Storage\Lockdown\StorageInterface                  $lockdownStorage storage provider instance
 	 * @param \Onge\UserManager\Session\SessionProviderInterface $sessionProvider session provider instance
@@ -28,7 +28,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 		$this->monitoredInterval = isset($config['monitoredInterval']) ? $config['monitoredInterval'] : 30;
 		$this->recordedInterval = isset($config['recordedInterval']) ? $config['recordedInterval'] : 43200; // 30 days default
-		
+
 		$this->challengeLimit = isset($config['challengeLimit']) ? $config['challengeLimit'] : 3;
 		$this->warningLimit = isset($config['warningLimit']) ? $config['warningLimit'] : 10;
 		$this->lockdownLimit = isset($config['lockdownLimit']) ? $config['lockdownLimit'] : 20;
@@ -42,7 +42,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * create record attempt - failed or otherwise suspictios
-	 * 
+	 *
 	 * @param  string $login login name of attempting user
 	 * @param  string $ip    attempt IP address. If null, provider try to guess
 	 * @return void
@@ -62,10 +62,10 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * Challenge shall be issued?
-	 * Checks number of failed attempts in monitored interval. 
+	 * Checks number of failed attempts in monitored interval.
 	 * If there is more attempts than challenge limit, challenge like CAPTCHA should be added to form
 	 * It is up to you to implement challenge.
-	 * 
+	 *
 	 * @param  string $login 	attempt login name
 	 * @param  string $ip    	attempt IP address. If null, provider try to guess
 	 * @return bool  		 	true if challenge is required, otherwise false
@@ -98,10 +98,10 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * Warning shall be issued?
-	 * Checks number of failed attempts in monitored interval. 
+	 * Checks number of failed attempts in monitored interval.
 	 * If there is more attempts than warning limit, warning should be issued
 	 * It is up to you to implement warning. It may be log record, email to admin, user, force user to change password or whatever else.
-	 * 
+	 *
 	 * @param  string $login 	attempt login name
 	 * @return bool  		 	true if challenge is required, otherwise false
 	 */
@@ -118,18 +118,18 @@ class ProtectionProvider implements ProtectionProviderInterface {
 			if ($attempts > $this->warningLimit()) {
 				$this->warningStorage()->warning($this->warningInterval(), $login);
 				return true;
-			}				
+			}
 		}
 
 		return false;
 	}
 
 	/**
-	 * shall action be locked down? 
-	 * Checks number of failed attempts in monitored interval. 
+	 * shall action be locked down?
+	 * Checks number of failed attempts in monitored interval.
 	 * If there is more attempts than lockdown limit, lockdown begins
 	 * It is up to you to lock users action since there is lockdown
-	 * 
+	 *
 	 * @param  string $login attempt login name
 	 * @param  string $ip    attempt IP address. If null, provider try to guess
 	 * @return string/false  false if there is no lockdown, otherwise return time when lockdown ends
@@ -152,7 +152,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 				if ($attempts > $this->lockdownLimit()) {
 					$this->lockdownStorage()->lock($this->lockdownInterval(), null, $login);
 					return date('Y-m-d H:i:s', time() + ($this->lockdownInterval() * 60));
-				}				
+				}
 			}
 		}
 
@@ -168,7 +168,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 				if ($attempts > $this->lockdownLimit()) {
 					$this->lockdownStorage()->lock($this->lockdownInterval(), $ip, null);
 					return date('Y-m-d H:i:s', time() + ($this->lockdownInterval() * 60));
-				}				
+				}
 			}
 		}
 
@@ -177,7 +177,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * Longest interval from settings in minutes. Useful for autocleanup
-	 * 
+	 *
 	 * @return int	minutes of interval
 	 */
 	public function longestInterval() {
@@ -186,7 +186,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * get monitored interval
-	 * 
+	 *
 	 * @return int 	minutes of interval
 	 */
 	public function monitoredInterval() {
@@ -195,7 +195,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * get recorded interval
-	 * 
+	 *
 	 * @return int 	minutes of interval
 	 */
 	public function recordedInterval() {
@@ -204,7 +204,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * get warning interval
-	 * 
+	 *
 	 * @return int 	minutes of interval
 	 */
 	public function warningInterval() {
@@ -213,7 +213,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * get lockdown interval
-	 * 
+	 *
 	 * @return int 	minutes of interval
 	 */
 	public function lockdownInterval() {
@@ -222,7 +222,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * storage for user warning
-	 * 
+	 *
 	 * @return Storage\Warning\StorageInterface
 	 */
 	protected function warningStorage() {
@@ -231,16 +231,16 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * storage for user lockdown
-	 * 
+	 *
 	 * @return Storage\Lockdown\StorageInterface
 	 */
 	protected function lockdownStorage() {
 		return $this->lockdownStorage;
 	}
-	
+
 	/**
 	 * storage for user lockdown
-	 * 
+	 *
 	 * @return Storage\Attempt\StorageInterface
 	 */
 	protected function attemptStorage() {
@@ -249,7 +249,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * how many attempts before warning
-	 * 
+	 *
 	 * @return int number of attempts
 	 */
 	public function warningLimit() {
@@ -258,7 +258,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * how many attempts before lockdown
-	 * 
+	 *
 	 * @return int number of attempts
 	 */
 	public function lockdownLimit() {
@@ -267,7 +267,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 
 	/**
 	 * try to guess IP from _SERVER variables, ignores local IP
-	 * 
+	 *
 	 * @return string IP address
 	 */
 	public function getIp()	{
