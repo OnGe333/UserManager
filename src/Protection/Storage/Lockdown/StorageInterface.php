@@ -1,7 +1,7 @@
 <?php
 namespace Onge\UserManager\Protection\Storage\Lockdown;
 
-interface StorageInterface {
+interface StorageInterface extends \Onge\UserManager\Protection\Storage\StorageInterface {
 	/**
 	 * create storage instance
 	 * @param array $config associative array with settings

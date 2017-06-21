@@ -10,7 +10,6 @@ interface CookieProviderInterface {
 
 	/**
 	 * set cookie
-	 *
 	 * @param string      $name          	cookie name - will be prefixed
 	 * @param mixed       $value         	cookie value
 	 * @param int|integer $lifetime      	cookie lifetime
@@ -20,7 +19,6 @@ interface CookieProviderInterface {
 
 	/**
 	 * set permanent cookie (with long lifetime)
-	 *
 	 * @param string $name          	cookie name
 	 * @param mixed  $value         	cookie value
 	 * @param array  $cookieOptions 	configuration associative array
@@ -29,7 +27,6 @@ interface CookieProviderInterface {
 
 	/**
 	 * get cookie value
-	 *
 	 * @param  string $name 	cookie name
 	 * @return mixed       		cookie value
 	 */
@@ -37,7 +34,6 @@ interface CookieProviderInterface {
 
 	/**
 	 * set cookie expiration to past and value to 0
-	 *
 	 * @param  string $name          	cookie name
 	 * @param  array  $cookieOptions 	configuration associative array
 	 */

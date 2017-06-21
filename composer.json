@@ -1,12 +1,13 @@
 {
 	"name": "onge/user-manager",
-	"description": "User management - registration, activation, authorization, password recovery",
+	"description": "User management tools - registration, activation, authorization, password recovery, security. Made for developers",
 	"keywords": ["auth", "security", "password", "user management"],
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Ondřej Gertner",
-			"email": "package@onge.cz"
+			"email": "package@onge.cz",
+			"homepage": "https://www.onge.cz",
 		}
 	],
 	"require": {
@@ -19,8 +20,6 @@
 	},
 	"suggest": {
 		"dibi/dibi": "for default database provider. See in examples",
-		"ext/openssl": "for better random strings",
-		"ext/gettext": "translate messages from default UserProvider"
 	},
 	"autoload": {
 		"psr-4": {
