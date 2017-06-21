@@ -41,7 +41,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	}
 
 	/**
-	 * create record attempt - failed or otherwise suspictios
+	 * create record attempt - failed login or otherwise suspictios
 	 *
 	 * @param  string $login login name of attempting user
 	 * @param  string $ip    attempt IP address. If null, provider try to guess
@@ -86,6 +86,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 			// unable to determine IP
 			// maybe access from localhost and IP not set
 			// or something is really wrong
+			throw new ProtectionException('Unable to determine IP for challenge. Login: ' . $login);
 		} else {
 			$attempts = $this->attemptStorage()->totalAttemptsIp($this->monitoredInterval(), $ip);
 			if ($attempts > $this->challengeLimit()) {
@@ -160,6 +161,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 			// unable to determine IP
 			// maybe access from localhost and IP not set
 			// or something is really wrong
+			throw new ProtectionException('Unable to determine IP for lockdown. Login: ' . $login);
 		} else {
 			if ($expire = $this->lockdownStorage()->isLockedIp($ip)) {
 				return $expire;

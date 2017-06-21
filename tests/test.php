@@ -77,8 +77,19 @@ class UserManagerTest extends TestCase
 		$this->assertEquals($length, mb_strlen(UserManager::getUserProvider()->randomString($length)));
 	}
 
-	public function testUserSetters() {
-		$user = UserManager::getUserProvider()->newUser();
+	public function testUserSetter() {
+		$data = array(
+			'id' => 1,
+			'email' => 'test@test.cz',
+			'active' => 1
+			);
+		$user = UserManager::getUserProvider()->newUser($data);
+
+		$this->assertInstanceOf($this->userContainerClass, $user);
+
+		foreach ($data AS $key => $value) {
+			$this->assertEquals($value, $user->{$key}());
+		}
 	}
 }
 ?>

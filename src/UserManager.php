@@ -128,6 +128,7 @@ class UserManager {
 			return false;
 		}
 	}
+
 	/**
 	 * Is user logged in? Return true if is, otherwise false
 	 *
@@ -250,12 +251,18 @@ class UserManager {
 		}
 	}
 
-	public static function attempt($login = null, $ip = null) {
+	/**
+	 * create record attempt - failed login or otherwise suspictios
+	 *
+	 * @param  string $login login name of attempting user
+	 * @param  string $ip    attempt IP address. If null, provider try to guess
+	 */
+	public static function attempt($login, $ip = null) {
 		return static::getInstance()->protectionProvider()->attempt($login, $ip);
 	}
 
 	public static function warning($login = null, $ip = null) {
-		return static::getInstance()->protectionProvider()->warning($login, $ip);
+		return static::getInstance()->protectionProvider()->warning($login);
 	}
 
 	public static function lockdown($login = null, $ip = null) {

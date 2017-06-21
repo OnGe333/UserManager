@@ -14,6 +14,10 @@ class CookieProvider implements CookieProviderInterface {
 
 	protected $httponly;
 
+	/**
+	 * @param array  $cookieOptions 	configuration associative array
+	 * @param string $prefix        	cookie prefix - to prevent cookie name collision
+	 */
 	public function __construct(array $cookieOptions = array(), $prefix = 'userManager_') {
 		$this->prefix = $prefix;
 
@@ -23,6 +27,14 @@ class CookieProvider implements CookieProviderInterface {
 		$this->httponly = isset($cookieOptions['httponly']) ? $cookieOptions['httponly'] : true;
 	}
 
+	/**
+	 * set cookie
+	 *
+	 * @param string      $name          	cookie name - will be prefixed
+	 * @param mixed       $value         	cookie value
+	 * @param int|integer $lifetime      	cookie lifetime
+	 * @param array       $cookieOptions 	configuration associative array
+	 */
 	public function set(string $name, $value, int $lifetime = 3600, array $cookieOptions = array()) {
 		$path = isset($cookieOptions['path']) ? $cookieOptions['path'] : $this->path;
 		$domain = isset($cookieOptions['domain']) ? $cookieOptions['domain'] : $this->domain;
@@ -36,11 +48,24 @@ class CookieProvider implements CookieProviderInterface {
 		}
 	}
 
+	/**
+	 * set permanent cookie (with long lifetime)
+	 *
+	 * @param string $name          	cookie name
+	 * @param mixed  $value         	cookie value
+	 * @param array  $cookieOptions 	configuration associative array
+	 */
 	public function setPermanent(string $name, $value, array $cookieOptions = array()) {
 		// lifetime slightly over ten years
 		return $this->set($name, $value, 320000000, $cookieOptions);
 	}
 
+	/**
+	 * get cookie value
+	 *
+	 * @param  string $name 	cookie name
+	 * @return mixed       		cookie value
+	 */
 	public function get($name) {
 		if (isset($_COOKIE[$this->prefix . $name])) {
 			return json_decode($_COOKIE[$this->prefix . $name]);
@@ -49,6 +74,13 @@ class CookieProvider implements CookieProviderInterface {
 		}
 	}
 
+	/**
+	 * set cookie expiration to past and value to 0
+	 *
+	 * @param  string $name          	cookie name
+	 * @param  array  $cookieOptions 	configuration associative array
+	 * @return bool                		true on success, false on failure
+	 */
 	public function unset(string $name, array $cookieOptions = array()) {
 		return $this->set($name, 0, -100000, $cookieOptions);
 	}
