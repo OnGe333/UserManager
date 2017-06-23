@@ -45,15 +45,11 @@ class UserManager {
 	 * @param  array  $dependencies 	see __constructor params
 	 * @return void
 	 */
-	public static function prepareInstance(array $dependencies) {
-		if (isset($dependencies['userProvider'])) {
-			$sessionProvider = isset($dependencies['sessionProvider']) ? $dependencies['sessionProvider'] : new Session\SessionProvider();
-			$userProvider = isset($dependencies['userProvider']) ? $dependencies['userProvider'] : new User\UserProvider(new User\Storage\Dibi());
-			$cookieProvider = isset($dependencies['cookieProvider']) ? $dependencies['cookieProvider'] : new Cookie\CookieProvider();
-			$protectionProvider = isset($dependencies['protectionProvider']) ? $dependencies['protectionProvider'] : new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), new Protection\Storage\Warning\Dibi(), $sessionProvider);
-		} else {
-			throw new Exception('User Provider not defined');
-		}
+	public static function prepareInstance(array $dependencies = array()) {
+		$sessionProvider = isset($dependencies['sessionProvider']) ? $dependencies['sessionProvider'] : new Session\SessionProvider();
+		$userProvider = isset($dependencies['userProvider']) ? $dependencies['userProvider'] : new User\UserProvider(new User\Storage\Dibi());
+		$cookieProvider = isset($dependencies['cookieProvider']) ? $dependencies['cookieProvider'] : new Cookie\CookieProvider();
+		$protectionProvider = isset($dependencies['protectionProvider']) ? $dependencies['protectionProvider'] : new Protection\ProtectionProvider(new Protection\Storage\Attempt\Dibi(), new Protection\Storage\Lockdown\Dibi(), new Protection\Storage\Warning\Dibi(), $sessionProvider);
 
 		static::$instance = new static($userProvider, $sessionProvider, $cookieProvider, $protectionProvider);
 	}
