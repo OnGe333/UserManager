@@ -15,6 +15,15 @@ class UserProvider implements UserProviderInterface {
 	}
 
 	/**
+	 * acces to storage provider
+	 *
+	 * @return Storgage\StorageInterface
+	 */
+	public function getStorage() {
+		return $this->storageProvider;
+	}
+
+	/**
 	 * get user data by id
 	 *
 	 * @param  int 	$id 	id of user
@@ -56,7 +65,14 @@ class UserProvider implements UserProviderInterface {
 		return null;
 	}
 
-	public function validatePassword($password) {
+	/**
+	 * check if password is valid
+	 *
+	 * @param  string 	$password	plaintext password
+	 * @param  bool 	$throw		if true, throw UserManagerArgumentException if something wrong
+	 * @return bool					true if valid
+	 */
+	public function validatePassword($password, $throw = true) {
 		if (!isset($password)) {
 			throw new UserManagerArgumentException(_('Password is required'));
 			return false;
@@ -73,7 +89,7 @@ class UserProvider implements UserProviderInterface {
 	/**
 	 * check registration data, throw UserManagerArgumentException if something wrong.
 	 *
-	 * @param  array  $data [description]
+	 * @param  array  $data 	associative array of user data
 	 * @return bool
 	 */
 	public function validateRegistration(array $data) {
@@ -205,6 +221,12 @@ class UserProvider implements UserProviderInterface {
 		}
 	}
 
+	/**
+	 * check if password reset code exists and has not expired
+	 *
+	 * @param  string 	$code 	password reset code
+	 * @return bool				true if exist and not expired, otherwise false
+	 */
 	public function validatePasswordResetCode($code) {
 		if ($data = $this->storageProvider->findByPasswordResetCode($code)) {
 			if ((strtotime($data['password_reset_time']) + $this->passwordResetCodeLifetime) > time()) {
@@ -217,6 +239,13 @@ class UserProvider implements UserProviderInterface {
 		return false;
 	}
 
+	/**
+	 * set new password with password reset code
+	 *
+	 * @param  string 	$code     	password reset code
+	 * @param  string 	$password 	new password (plaintext)
+	 * @return bool 				true on success, otherwise false
+	 */
 	public function resetPassword($code, $password) {
 		if ($data = $this->storageProvider->findByPasswordResetCode($code)) {
 			$user = $this->newUser($data);
@@ -230,6 +259,12 @@ class UserProvider implements UserProviderInterface {
 		return false;
 	}
 
+	/**
+	 * generate random url-safe string to use as code
+	 *
+	 * @param  integer 	$length       	length of string
+	 * @param  mixed 	$uniqueColumn 	name of database column to check if string is unique, or false if check is not necessary
+	 */
 	public function randomString($length = 48, $uniqueColumn = false) {
 		while (true) {
 			$bytes = random_bytes($length);
