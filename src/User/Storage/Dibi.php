@@ -36,6 +36,12 @@ class Dibi implements StorageInterface {
 		$this->id = isset($config['id']) ? $config['id'] : 'id';
 	}
 
+	public function __call($functionName, $args) {
+		if (empty($args) && isset($this->{$functionName})) {
+			return $this->{$functionName};
+		}
+	}
+
 	public function getContainerClass() {
 		return $this->containerClass;
 	}

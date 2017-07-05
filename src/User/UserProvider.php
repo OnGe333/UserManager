@@ -274,7 +274,7 @@ class UserProvider implements UserProviderInterface {
 			if ($uniqueColumn === false) {
 				break;
 			} else {
-				if (!$this->storageProvider()->isUnique($string, $uniqueColumn)) {
+				if (!$this->storageProvider->isUnique($string, $uniqueColumn)) {
 					break;
 				}
 			}
