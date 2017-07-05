@@ -9,4 +9,8 @@ interface SessionProviderInterface {
 	public function login($id);
 
 	public function logout();
+
+	public function set($key, $value);
+
+	public function get($key);
 }
