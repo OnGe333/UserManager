@@ -193,10 +193,10 @@ class UserManager {
 
 			$user->setPassword($data['password']);
 			$user->setActive(false);
-			$user->setActivationCode();
+			$user->setActivationCode(static::getInstance()->userProvider()->randomString(48, static::getInstance()->userProvider()->getStorage()->activationCode()));
 
 			if (static::getInstance()->userProvider()->save($user)) {
-				return $user;
+				return static::getInstance()->userProvider()->findByLogin($user->login());
 			} else {
 				return false;
 			}
