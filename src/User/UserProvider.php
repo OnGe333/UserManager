@@ -144,7 +144,7 @@ class UserProvider implements UserProviderInterface {
 	 * @return bool 	return true on success, otherwise false
 	 */
 	public function activateByCode($code) {
-		if ($user = $this->storageProvider->findByActivationCode($code)) {
+		if ($data = $this->storageProvider->findByActivationCode($code)) {
 			$user = $this->newUser($data);
 			$user->setActive(true);
 			$user->invalidateActivationCode();
