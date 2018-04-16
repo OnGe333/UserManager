@@ -250,6 +250,15 @@ class ProtectionProvider implements ProtectionProviderInterface {
 	}
 
 	/**
+	 * how many attempts before challenge
+	 *
+	 * @return int number of attempts
+	 */
+	public function challengeLimit() {
+		return $this->challengeLimit;
+	}
+
+	/**
 	 * how many attempts before warning
 	 *
 	 * @return int number of attempts
