@@ -257,6 +257,10 @@ class UserManager {
 		return static::getInstance()->protectionProvider()->attempt($login, $ip);
 	}
 
+	public static function challenge($login = null, $ip = null) {
+		return static::getInstance()->protectionProvider()->challenge($login);
+	}
+
 	public static function warning($login = null, $ip = null) {
 		return static::getInstance()->protectionProvider()->warning($login);
 	}

@@ -117,7 +117,7 @@ class ProtectionProvider implements ProtectionProviderInterface {
 		} else {
 			$attempts = $this->attemptStorage()->totalAttemptsLogin($this->monitoredInterval(), $login);
 			if ($attempts > $this->warningLimit()) {
-				$this->warningStorage()->warning($this->warningInterval(), $login);
+				$this->warningStorage()->addWarning($this->warningInterval(), $login);
 				return true;
 			}
 		}
