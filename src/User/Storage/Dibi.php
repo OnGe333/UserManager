@@ -106,6 +106,16 @@ class Dibi implements StorageInterface {
 		}
 	}
 
+	public function findByColumn($column, $value) {
+		$data = \dibi::query('SELECT * FROM %n', $this->table, 'WHERE %n', $column, ' = %s', $value)->fetch();
+
+		if (empty($data)) {
+			return false;
+		} else {
+			return $data->toArray();
+		}
+	}
+
 	public function save(\Onge\UserManager\User\UserInterface $user) {
 		$data = $user->getData();
 
